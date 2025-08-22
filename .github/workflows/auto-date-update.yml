@@ -2,7 +2,7 @@ name: Auto Date Update
 
 on:
   schedule:
-    #- cron: '0 */8 * * *'  # 毎日８時間に１回実行（UTC）
+    - cron: '0 */8 * * *'  # 毎日８時間に１回実行（UTC）
   workflow_dispatch:
 
 jobs:
