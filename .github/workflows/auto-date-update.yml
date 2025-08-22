@@ -36,4 +36,11 @@ jobs:
           title: "Automated PR: Update today's date"
           body: "This PR updates the date line in test.py."
           branch: "auto/update-date"
-          auto-merge: true
+          # auto-merge: true
+
+      - name: Enable auto-merge for PR
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: merge
