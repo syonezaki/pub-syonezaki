@@ -1,0 +1,38 @@
+name: Auto Date Update
+
+on:
+  schedule:
+    - cron: '0 */8 * * *'  # 毎日８時間に１回実行（UTC）
+  workflow_dispatch:
+
+jobs:
+  update-date:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Update date line in test.py
+        run: |
+          # 日付出力行を上書き（なければ追加）
+          if grep -q "^print('最終実行時間:" test.py; then
+            sed -i "s|^print('最終実行時間:.*')$|print('最終実行時間: $(date '+%Y-%m-%d %H:%M:%S')')|" test.py
+          else
+            echo "print('最終実行時間: $(date '+%Y-%m-%d %H:%M:%S')')" >> test.py
+          fi
+
+      - name: Commit changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add test.py
+          git commit -m "Update today's date: $(date "+%Y-%m-%d")" || echo "No changes to commit"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'Update todays date: $(date "+%Y-%m-%d")'
+          title: "Automated PR: Update today's date"
+          body: "This PR updates the date line in test.py."
+          branch: "auto/update-date"
+          auto-merge: true
