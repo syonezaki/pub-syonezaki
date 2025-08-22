@@ -29,6 +29,7 @@ jobs:
           git commit -m "Update today's date: $(date "+%Y-%m-%d")" || echo "No changes to commit"
 
       - name: Create Pull Request
+        id: cpr
         uses: peter-evans/create-pull-request@v5
         with:
           commit-message: 'Update todays date: $(date "+%Y-%m-%d")'
