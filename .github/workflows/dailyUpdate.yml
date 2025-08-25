@@ -1,0 +1,61 @@
+name: Update test.py every 8 hours
+
+on:
+  schedule:
+    - cron: '0 */8 * * *'  # 8時間ごと（UTC基準）
+  workflow_dispatch:
+
+jobs:
+  update-testpy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Update test.py with current datetime
+        run: |
+          dt=$(date '+%Y-%m-%d %H:%M:%S')
+          echo "print('最終実行時間: $dt')" > test.py
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Create update branch
+        run: |
+          git checkout -b auto/update-testpy
+
+      - name: Commit changes
+        run: |
+          git add test.py
+          git commit -m "Update test.py with current datetime [skip ci]" || echo "No changes to commit"
+
+      - name: Push branch
+        run: |
+          git push -f origin auto/update-testpy
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'Update test.py with current datetime'
+          title: 'Update test.py with current datetime'
+          body: 'This PR updates test.py with the current datetime (every 8 hours).'
+          base: main
+          head: auto/update-testpy
+          branch: auto/update-testpy
+          delete-branch: true
+
+      - name: Auto-merge PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        uses: pascalgn/automerge-action@v0.16.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
